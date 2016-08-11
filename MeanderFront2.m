@@ -1,0 +1,116 @@
+%%
+% SOLVE THE CURVED FRONT EKMAN TRANSPORT
+%%
+
+% PARAMETERS
+% l(x,y)- Parameterized along front coordinate
+% ubar - Along front speed (uniform in l), with cross front variation
+ubar = 0.75;
+
+% f - Coriolis
+f = 1e-4;
+% tau
+taumag =0.1/1030;
+
+% DERIVED QUANTITIES
+% epsilon
+epsilon = .25;
+L = ubar./(f.*epsilon);
+% dubar/dn - shear vorticity
+dudn = -ubar./L;
+
+% epsilonr/epsilon = A/L
+epreps = .5;
+A =(L*epreps);
+% A/L;
+% k
+% tau dot s
+% tau dot n
+
+
+% Define a frontal equation
+% y = f(x)
+t=0:.01:pi;
+% A = .5;
+x = -A*cos(t);
+deltax = (.01);
+xfact = 10*L;
+x = (0:deltax:1).*xfact;
+y = A*sin(2*pi*x./(xfact));
+l = [x, y];
+
+dx  = gradient(x);
+ddx = gradient(dx);
+dy  = gradient(y);
+ddy = gradient(dy);
+
+num   = dx .* ddy - ddx .* dy;
+denom = dx .* dx + dy .* dy;
+denom = sqrt(denom);
+denom = denom.* denom.* denom;
+k = num ./ denom;
+k(denom < 0) = NaN;
+k(num==0) = NaN;
+
+du = gradient(x, deltax*xfact); %Temporary velocity gradients
+dv = gradient(y, deltax*xfact); %
+
+
+vels = du+1i*dv;  %Tangent Vectors at each spot.
+frntvec = vels./abs(vels); %Normalized;
+
+tau = taumag.*ones(size(x));
+taus = dot([real(tau); imag(tau)], [real(frntvec); imag(frntvec)]);
+taun = dot([real(tau); imag(tau)], [-imag(frntvec); real(frntvec)]);
+
+subplot(3,1,1)
+plot(x, y, 'LineWidth', 3);
+grid on
+hold on
+quiver(x, y, du, dv);
+hold off
+% axis equal
+subplot(3,1,2)
+plot(x,y, 'LineWidth', 3);
+hold on
+plot(x, taus*A./tau)
+plot(x, taun*A./tau);
+hold off
+grid on
+
+subplot(3,1,3)
+plot(x, curvature);
+% axis equal
+%%%%
+%% SOLVE ODES
+omega = ubar*k;
+zeta = -dudn + omega;
+l = cumtrapz(x, abs(vels));
+
+out = meanderFrontODEs(l, omega, zeta, ubar, taus, taun, f);
+
+% Mu = dot([out.u.*frntvec; out.v.*imag(frntvec)], [1*ones(size(x)); 0*ones(size(x))]);
+Mu = dot([out.u; out.v],[real(frntvec); imag(frntvec)]);
+
+Mv = dot([out.u; out.v],[-imag(frntvec); real(frntvec)]);
+
+figure
+subplot(3,1,1);
+plot(l, out.u);
+hold on
+plot(l, out.v);
+hold off
+legend('Along Front', 'Across Front');
+grid on
+subplot(3,1,2)
+plot(x,y);
+hold on
+quiver(x,y,Mu, Mv);
+grid on
+subplot(3,1,3);
+plot(x, Mu);
+hold on
+plot(x, Mv);
+hold off
+legend('M_U', 'M_V');
+grid on

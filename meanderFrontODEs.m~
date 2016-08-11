@@ -1,0 +1,40 @@
+function output = meanderFrontODEs(l, omega, zeta)
+% Numerical Solution to Meandering Front Model
+% ubar*dv/dl + (1+2*omega)u = taun
+% ubar*du/dl -(1+zeta)v = taus;
+%dv/dl = 1/ubar*[taun - (1+2
+
+OMEGA = griddedInterpolant(l, omega);
+ZETA = griddedInterpolant(l, zeta);
+% bvpops = bvpset('NMax', 200000);
+% solinit = bvpinit(z, [1 0]);
+
+sol = bvp4c(@MFode, @ckbc, solinit, bvpops);
+
+out = deval(sol, z);
+
+output.u = real(out(1,:));
+output.v = imag(out(1,:));
+output.uz = real(out(1,:)./(1023*av));
+output.vz = imag(out(1,:)./(1023*av));
+output.z = z;
+
+%===================
+
+function ddl = MFode(l, y)
+
+    omegatemp = OMEGA(l);
+    zetatemp = ZETA(l);
+    
+    dydz = [y(2) 1i*f./avtemp*y(1) + gradtemp];
+
+end
+
+%====================
+function res = ckbc(ya, yb)
+%-(av(1)*gradtheta(1)./(-1i*f))
+ res = [ya(1) (yb(1) - tau)];
+ 
+end
+
+end
