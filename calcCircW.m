@@ -9,10 +9,15 @@ r = (0.01:.01:1).*2*cr;
 ubarmax = epsilon.*f.*cr;
 jetwidth = cr.*.6;
 
+% Gaussian SSH
 velstruct = r.*2./(jetwidth^2).*exp( - (r/jetwidth).^2);
 velstruct = velstruct/max(abs(velstruct));
 velstruct = ubarmax.*velstruct;
 dudr = (1-2*r.^2./jetwidth.^2).*velstruct./r;
+
+%Gaussian Vel
+% velstruct = ubarmax.*exp(- ((r-cr)/jetwidth).^2);
+% dudr = -(r-cr).*2./(jetwidth).^2.*velstruct;
 
 x = NaN(length(r), length(thetas));
 y = x;
@@ -20,6 +25,12 @@ Myc = x;
 Mx = x;
 My = x;
 umag = x;
+zetaf=x;
+omegaf=x;
+Myeps = x;
+Mxeps = x;
+Mvclass = x;
+Mvlin = x;
 maxom = 0;
 for i=1:length(r)
    omega = velstruct(i)./r(i);
@@ -27,17 +38,30 @@ for i=1:length(r)
    zeta =  dudr(i) + omega;
    
    denom = (f+2*omega).*(f+zeta)-omega.^2;
-%    Mr(i,:) = - (f+3*omega)./denom.*sin(thetas);
-%    Mthet
+
    Mx(i,:) = (zeta - 2*omega)./denom.*sin(thetas).*cos(thetas).*tau;
    My(i,:) = -(f + omega + 2.*omega.*sin(thetas).^2 + zeta.*cos(thetas).^2)./denom.*tau;
    
-   Myc(i,:) = -tau./(f+zeta).*ones(size(thetas));
+   Mr(i,:) = - (f + 3*omega)./denom.*sin(thetas).*tau;
+   Mth(i,:) = -(f + omega+zeta)./denom.*cos(thetas).*tau;
+
+   Mx(i,:) = Mr(i,:).*cos(thetas) - Mth(i,:).*sin(thetas);
+   My(i,:) = Mr(i,:).*sin(thetas) + Mth(i,:).*cos(thetas);
    
-   [x(i,:) y(i,:)] = pol2cart(thetas, r(i));
+   Myc(i,:) = -tau./(f+zeta).*ones(size(thetas));%% This is wrong, need to consider angle!
+   
+   Myeps(i,:) = -(f - (zeta-omega).*sin(thetas).^2 - omega.*cos(thetas).^2).*tau./f.^2;
+   Mxeps(i,:) = (zeta-2*omega).*sin(thetas).*cos(thetas).*tau;
+   
+   Mvclass(i,:) = - tau./(f+zeta);
+   Mvlin(i,:) = -tau./f;
+   
+   [x(i,:), y(i,:)] = pol2cart(thetas, r(i));
    uc(i,:) = velstruct(i).*(-sin(thetas));
    vc(i,:) = velstruct(i).*cos(thetas);
    umag(i,:) = velstruct(i).*ones(size(thetas));
+   omegaf(i,:) = omega;
+   zetaf(i,:) = zeta;
 end
 
 nr = length(r); nth = length(thetas);
@@ -47,8 +71,8 @@ yvec = reshape(y, nr*nth, 1);
 Mxvec = reshape(Mx, nr*nth, 1);
 Myvec = reshape(My, nr*nth, 1);
 
-x = (-1:.01:1).*r(end); y = x;
-deltax = x(2)-x(1); deltay=deltax;
+x = (-1:.01:1).*r(end); y = (-1:.005:1).*r(end);
+deltax = x(2)-x(1); deltay=y(2)-y(1);
 [X, Y] = meshgrid(x, y);
 
 MUBAR = griddata(xvec, yvec, Mxvec, X, Y);
@@ -62,13 +86,43 @@ MVBARC = griddata(xvec, yvec, Mycvec, X, Y);
 [MVx, MVy] = gradient(MVBARC, deltay);
 Wclassic = MVy;
 
+omegavec = reshape(omegaf, nr*nth,1);
+zetavec = reshape(zetaf, nr*nth,1);
+OMEGA = griddata(xvec, yvec, omegavec, X, Y);
+ZETA = griddata(xvec, yvec, zetavec, X, Y);
+
 umagvec = reshape(umag, nr*nth, 1);
 UMAG = griddata(xvec, yvec, umagvec, X, Y);
 
-out.x = X; out.y = Y;
+myepsvec = reshape(Myeps, nr*nth, 1);
+MVEPS = griddata(xvec, yvec, myepsvec, X, Y);
+mxepsvec = reshape(Mxeps, nr*nth, 1);
+MUEPS = griddata(xvec, yvec, mxepsvec, X, Y);
+mvclassvec = reshape(Mvclass,nr*nth,1);
+MVCLASS = griddata(xvec, yvec, mvclassvec, X, Y);
+mvlinvec = reshape(Mvlin, nr*nth,1);
+MVLIN = griddata(xvec, yvec, mvlinvec, X, Y);
+
+ucvec = reshape(uc, nr*nth, 1);
+vcvec = reshape(vc, nr*nth,1);
+UC = griddata(xvec, yvec, ucvec, X, Y);
+VC = griddata(xvec, yvec, vcvec, X, Y);
+[UX, UY] = gradient(UC, deltay);
+[VX, VY] = gradient(VC, deltax);
+ZETACART = VX-UY;
+MVCLASS = -tau./(f+ZETACART);
+% Wclassic = UX+VY;
+
+out.x = x; out.y = y;
 out.UMAG = UMAG;
 out.MU = MUBAR;
 out.MV = MVBAR;
 out.W = W;
 out.WClassic = Wclassic;
+out.OMEGA = OMEGA;
+out.ZETA = ZETA;
+out.MVEPS = MVEPS;
+out.MUEPS = MUEPS;
+out.MVCLASS= MVCLASS;
+out.MVLIN = MVLIN;
 end

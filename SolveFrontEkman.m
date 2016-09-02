@@ -34,10 +34,12 @@ deltax = x(2)-x(1); %assuming uniform spacing
      output.vy =  imag(out.u.*frntvec + out.v.*1i.*frntvec);
      output.zeta = zeta;
      output.omega = omega;
-     output.l =omega;
+     output.l =l;
      output.u = out.u;
      output.v = out.v;
      output.tangent = frntvec;
+     output.taus = taus;
+     output.taun = taun;
 end
 
 
