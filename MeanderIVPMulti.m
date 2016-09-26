@@ -1,8 +1,8 @@
 %%% MeanderIVPMulti
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 xfact = 120000;
-deltax = 2000./xfact;
-x = (0:deltax:360).*xfact;
+deltax = (2000./xfact);
+x = (0:deltax:400).*xfact;
 f = 1e-4;
 % taumag =1i*0.1/1030;
 epsilon = .5;
@@ -35,7 +35,8 @@ for Aind = 4;1:length(avecs);
     % facAmp = facAmp.*exp(-( ( x-xc)./(6*xfact)).^2);
     x1=x;
     offset = ys(ind);
-    y = facAmp.*A.*sin(2*pi*x./(xfact))+offset;
+%     y = facAmp.*A.*sin(2*pi*x./(xfact))+offset;
+    y = makeOffsetCurve(facAmp.*A.*sin(2*pi*x./(xfact)), offset, x);
     ytot(ind,:) = y;
     if (ind == floor(length(ys)/2))
 %         yfull(Aind,:) = y;
@@ -55,6 +56,7 @@ for Aind = 4;1:length(avecs);
     denom = denom.* denom.* denom;
     k = num ./ denom;
     k(denom < 0) = NaN;
+    ktot = k;
     disp(['Eps-Omega = ', num2str(max(k).*ubar./f,2)]);
 
     % Determine s and n vectors
