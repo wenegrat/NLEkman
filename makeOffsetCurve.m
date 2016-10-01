@@ -4,8 +4,11 @@ xdiff = x(2)-x(1);
 yprime = gradient(yorig, xdiff);
 xprime = 1; %Assumed input 
 
-xs = x + offset.*yprime./(sqrt(1+yprime.^2));
-ys = yorig - offset./(sqrt(1+yprime.^2));
+xs = x - offset.*yprime./(sqrt(1+yprime.^2));
+
+ys = yorig + offset./(sqrt(1+yprime.^2));
 
 y = interp1(xs, ys, x, 'pchip');
+xsprime = gradient(xs); if sum(xsprime<0)>0, y = NaN.*ys; end
+
 end

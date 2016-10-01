@@ -1,3 +1,5 @@
+set(0, 'defaulttextinterpreter', 'latex')
+set(groot, 'defaultAxesTickLabelInterpreter','latex'); set(groot, 'defaultLegendInterpreter','latex');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Nonlinear Ekman Main Script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -28,3 +30,4 @@ GaussBumpWithVorticity
 % Extras
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 MeanderNumResonance; %Floquet Analysis
+VerifyNoWMeanFlow; %Confirm that mean flow is non-divergent.

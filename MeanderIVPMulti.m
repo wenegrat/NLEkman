@@ -1,17 +1,13 @@
 %%% MeanderIVPMulti
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-xfact = 120000;
-deltax = (2000./xfact);
-x = (0:deltax:400).*xfact;
-f = 1e-4;
+% xfact = 120000;
+
+x = (0:deltax:500).*xfact;
 % taumag =1i*0.1/1030;
-epsilon = .5;
-ubarc = .5;
-L = ubarc./(f*epsilon);
+
 deltay = 500;
 ys = -3*L:deltay:3*L;
 ubart = ubarc.*exp(-(ys./L).^2/2);
-avecs = [0 4e3 8e3 12e3];
 
 Wfull = NaN(length(avecs), length(x), length(ys));
 UBfull = Wfull;
@@ -29,7 +25,7 @@ for Aind = 4;1:length(avecs);
     epsk = A.*epsilon.*L.*(2*pi/xfact).^2;
 
     rampwidth = 60*xfact;
-    xc = 280.*xfact;
+    xc = 300.*xfact;
     facAmp = 1/2.*(1+tanh( (x-xc)./rampwidth));
 
     % facAmp = facAmp.*exp(-( ( x-xc)./(6*xfact)).^2);
@@ -37,59 +33,63 @@ for Aind = 4;1:length(avecs);
     offset = ys(ind);
 %     y = facAmp.*A.*sin(2*pi*x./(xfact))+offset;
     y = makeOffsetCurve(facAmp.*A.*sin(2*pi*x./(xfact)), offset, x);
+
     ytot(ind,:) = y;
     if (ind == floor(length(ys)/2))
 %         yfull(Aind,:) = y;
     end
     %Determine curvature
-    dx  = gradient(x, deltax*xfact);
-    ddx = gradient(dx, deltax*xfact);
-    dy  = gradient(y, deltax*xfact);
-    dy(1:end-1) = (y(2:end)-y(1:end-1))./(deltax.*xfact);
-    dy(end) = dy(1);
-    ddy = gradient(dy, deltax*xfact);
-    ddy(1:end-1) = (dy(2:end)-dy(1:end-1))./(deltax.*xfact);
-    ddy(end) =ddy(1);
-    num   = dx .* ddy - ddx .* dy;
-    denom = dx .* dx + dy .* dy;
-    denom = sqrt(denom);
-    denom = denom.* denom.* denom;
-    k = num ./ denom;
-    k(denom < 0) = NaN;
-    ktot = k;
-    disp(['Eps-Omega = ', num2str(max(k).*ubar./f,2)]);
+    if (sum(~isfinite(y)) == 0)
+        dx  = gradient(x, deltax*xfact);
+        ddx = gradient(dx, deltax*xfact);
+        dy  = gradient(y, deltax*xfact);
+        dy(1:end-1) = (y(2:end)-y(1:end-1))./(deltax.*xfact);
+        dy(end) = dy(1);
+        ddy = gradient(dy, deltax*xfact);
+        ddy(1:end-1) = (dy(2:end)-dy(1:end-1))./(deltax.*xfact);
+        ddy(end) =ddy(1);
+        num   = dx .* ddy - ddx .* dy;
+        denom = dx .* dx + dy .* dy;
+        denom = sqrt(denom);
+        denom = denom.* denom.* denom;
+        k = num ./ denom;
+        k(denom < 0) = NaN;
 
-    % Determine s and n vectors
-    du = gradient(x, deltax*xfact); %Temporary velocity gradients
-    dv = gradient(y, deltax*xfact); %
-    dv(1:end-1) = (y(2:end)-y(1:end-1))./(deltax*xfact);
-    dv(end)=dv(1);
-    vels = du+1i*dv;  %Tangent Vectors at each spot.
-    frntvec = vels./abs(vels); %Normalized;
+        disp(['Eps-Omega = ', num2str(max(k).*ubar./f,2)]);
 
-    rampwidth = 20*xfact;
-    xc = 40.*xfact;
-    facTau = 1/2.*(1+tanh( (x-xc)./rampwidth));
-    % facTau = 1;
-    tau = facTau.*taumag.*ones(size(x));
-    tau = tau-tau(1);
-    taus = dot([real(tau); imag(tau)], [real(frntvec); imag(frntvec)]);
-    taun = dot([real(tau); imag(tau)], [-imag(frntvec); real(frntvec)]);
+        % Determine s and n vectors
+        du = gradient(x, deltax*xfact); %Temporary velocity gradients
+        dv = gradient(y, deltax*xfact); %
+        dv(1:end-1) = (y(2:end)-y(1:end-1))./(deltax*xfact);
+        dv(end)=dv(1);
+        vels = du+1i*dv;  %Tangent Vectors at each spot.
+        frntvec = vels./abs(vels); %Normalized;
 
-    %%
-    % SOLVE ODES
-    omega = ubar*k;
-    zeta = -dudn + omega;
+        rampwidth = 20*xfact;
+        xc = 40.*xfact;
+        facTau = 1/2.*(1+tanh( (x-xc)./rampwidth));
+        % facTau = 1;
+        tau = facTau.*taumag.*ones(size(x));
+        tau = tau-tau(1);
+        taus = dot([real(tau); imag(tau)], [real(frntvec); imag(frntvec)]);
+        taun = dot([real(tau); imag(tau)], [-imag(frntvec); real(frntvec)]);
 
-    l = abs(cumtrapz(x1, abs(vels))); % int_x sqrt( 1+(dy/dx)^2)
-    % l = cumtrapz(real(velfr));
-    guess = [0 0]; %IVP bc u, v
-    out = meanderFrontODEIVP(l, omega, zeta, ubar, taus, taun, f, guess);
-    Mu = real(out.u.*frntvec + out.v.*1i.*frntvec);
-    Mv =  imag(out.u.*frntvec + out.v.*1i.*frntvec);
 
-    Mutot(ind,:) = Mu;
-    Mvtot(ind,:) = Mv;
+        % SOLVE ODES
+        omega = ubar*k;
+        zeta = -dudn + omega;
+
+        l = abs(cumtrapz(x1, abs(vels))); % int_x sqrt( 1+(dy/dx)^2)
+        % l = cumtrapz(real(velfr));
+        guess = [0 0]; %IVP bc u, v
+        r= 1e-5;
+        out = meanderFrontODEIVP(l, omega, zeta, ubar, taus, taun, f, guess, r);
+        Mu = real(out.u.*frntvec + out.v.*1i.*frntvec);
+        Mv =  imag(out.u.*frntvec + out.v.*1i.*frntvec);
+
+        Mutot(ind,:) = Mu;
+        Mvtot(ind,:) = Mv;
+    end
     end
     %%
     npaths = length(ys); nx = length(x);
@@ -98,17 +98,20 @@ for Aind = 4;1:length(avecs);
     [X, Y] = meshgrid(x,ys);
     muvec = reshape(Mutot.', npaths*nx,1);
     mvvec = reshape(Mvtot.', 1,npaths*nx);
-    MUBAR = griddata(xi, yi, muvec, X, Y);
-    MVBAR = griddata(xi, yi, mvvec, X, Y);
+    mask = isfinite(yi);
+    
+    MUBAR = griddata(xi(mask), yi(mask), muvec(mask), X, Y);
+    MVBAR = griddata(xi(mask), yi(mask), mvvec(mask), X, Y);
     [MUx, MUy] = gradient(MUBAR, deltax.*xfact);
     [MVx, MVy] = gradient(MVBAR, deltay);
     W = MUx+MVy;
     Wfull(Aind, :,:) = W.';
-    
+    %%
     ubfull = repmat(ubart, [nx, 1]);
     ubfull = reshape(ubfull, 1, npaths*nx);
-    UBAR = griddata(xi, yi, ubfull, X, Y);
+    UBAR = griddata(xi(mask), yi(mask), ubfull(mask), X, Y);
     UBfull(Aind,:,:) = UBAR.';
+    
     
 end
 

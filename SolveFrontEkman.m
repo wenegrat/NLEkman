@@ -29,7 +29,8 @@ deltax = x(2)-x(1); %assuming uniform spacing
      taun = dot([real(tau); imag(tau)], [-imag(frntvec); real(frntvec)]);
      
      guess  = [0 0];
-     out = meanderFrontODEIVP(l, omega, zeta, ubar, taus, taun, f, guess);
+     r = 0;
+     out = meanderFrontODEIVP(l, omega, zeta, ubar, taus, taun, f, guess, r);
      output.ux = real(out.u.*frntvec + out.v.*1i.*frntvec);
      output.vy =  imag(out.u.*frntvec + out.v.*1i.*frntvec);
      output.zeta = zeta;

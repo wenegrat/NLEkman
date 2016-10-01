@@ -1,13 +1,12 @@
-function out = calcCircW(epsilon)
+function out = calcCircW(epsilon, tau, f, cr)
 
-f = 1e-4;
-tau = .1/1035;
-thetas = 0:.01:2*pi;
-cr = 60e3;
-r = (0.01:.01:1).*2*cr;
+
+thetas = 0:.005:2*pi;
+% cr = 60e3;
+r = (0.01:.005:1).*2.5*cr;
 
 ubarmax = epsilon.*f.*cr;
-jetwidth = cr.*.6;
+jetwidth = cr.*.65;
 
 % Gaussian SSH
 velstruct = r.*2./(jetwidth^2).*exp( - (r/jetwidth).^2);
@@ -18,6 +17,7 @@ dudr = (1-2*r.^2./jetwidth.^2).*velstruct./r;
 %Gaussian Vel
 % velstruct = ubarmax.*exp(- ((r-cr)/jetwidth).^2);
 % dudr = -(r-cr).*2./(jetwidth).^2.*velstruct;
+
 
 x = NaN(length(r), length(thetas));
 y = x;
