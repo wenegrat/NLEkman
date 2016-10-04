@@ -3,17 +3,19 @@ function out = calcCircW(epsilon, tau, f, cr)
 
 thetas = 0:.005:2*pi;
 % cr = 60e3;
-r = (0.01:.005:1).*2.5*cr;
+r = (0.01:.01:1).*3.5*cr;
 
 ubarmax = epsilon.*f.*cr;
-jetwidth = cr.*.65;
+jetwidth = cr;
 
 % Gaussian SSH
-velstruct = r.*2./(jetwidth^2).*exp( - (r/jetwidth).^2);
+velstruct = r./(jetwidth^2).*exp( - 1/2*(r/(jetwidth)).^2);
 velstruct = velstruct/max(abs(velstruct));
 velstruct = ubarmax.*velstruct;
-dudr = (1-2*r.^2./jetwidth.^2).*velstruct./r;
+dudr = (1-r.^2./jetwidth.^2).*velstruct./r;
 
+disp(['Maximum \zeta_s = ', num2str(max(abs(dudr)))]);
+disp(['Maximum \zeta_c = ', num2str(max(abs(velstruct./r)))]);
 %Gaussian Vel
 % velstruct = ubarmax.*exp(- ((r-cr)/jetwidth).^2);
 % dudr = -(r-cr).*2./(jetwidth).^2.*velstruct;
@@ -71,7 +73,7 @@ yvec = reshape(y, nr*nth, 1);
 Mxvec = reshape(Mx, nr*nth, 1);
 Myvec = reshape(My, nr*nth, 1);
 
-x = (-1:.01:1).*r(end); y = (-1:.005:1).*r(end);
+x = (-1:.02:1).*r(end); y = (-1:.02:1).*r(end);
 deltax = x(2)-x(1); deltay=y(2)-y(1);
 [X, Y] = meshgrid(x, y);
 

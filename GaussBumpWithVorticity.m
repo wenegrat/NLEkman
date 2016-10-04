@@ -1,9 +1,12 @@
 deltax = 250;
 x=0:deltax:1000e3;
+x=0:deltax:2500e3;
 f = 1e-4;
 ubar = .25;
 xc = floor(length(x)/2);
+% xc = floor(leng
 xc = x(xc);
+xc = 499750+5e5;
 amp = 12e3;
 % amp = 6e3;
 
@@ -18,22 +21,33 @@ y = amp*exp( - ((x-xc)/width).^2);
 % y = amp.*y;
 
 plot(x, y);
-xc = 120e3;
-rampwidth=80e3;
+xc = 420e3;
+% rampwidth=80e3;
+rampwidth = 120e3;
 facTau = 1/2.*(1+tanh( (x-xc)./rampwidth));
 % facTau = 1;
 % tau = facTau.*taumag.*ones(size(x));
 tau = .1.*facTau.*ones(size(x))/1035;
 tau = tau-tau(1);
-
+% tau = .1./1035*ones(size(x));%
+% tau(1:2500) = 0;
 
 epsilon = .5;
 ubarc = .5;
 L = ubarc./(f*epsilon);
 deltay = 500;
 offsets = -amp/2:deltay:2*amp;
+%Gaussian Vel profile
 ubart = ubarc.*exp(-(offsets./L).^2/2);
-
+%Linear ubart profile
+% hw = 13;
+% % ubart = NaN(size(offsets));
+% dudnt = ubart;
+% ubart(1:hw) = ubarc.*(1+(offsets(1:hw)./offsets(1)).*(ubart(1)-ubarc)./ubarc);
+% ubart(hw:end) = ubarc.*(1+((offsets(hw:end)-offsets(hw))./offsets(end)).*(ubart(end)-ubarc)./ubarc);
+% dudnt(1:hw) = (1./offsets(1)).*(ubart(1)-ubarc);
+% dudnt(hw:end) = (1./offsets(end)).*(ubart(end)-ubarc);
+% dudnt(hw) = 0;
 %Allocate
 u = NaN(length(offsets), length(x));
 v = u; l = u; zeta = u; k = u; taus = u; taun = u; positions=u;ux=u; vx=u; 
@@ -45,7 +59,8 @@ for i=1:length(offsets)
     pos = makeOffsetCurve(y, off, x);
     if isfinite(pos); 
     ubar = ubart(i);
-    dudn = -ubar.*offsets(i)./(L.^2); 
+    dudn = ubar.*offsets(i)./(L.^2); 
+%     dudn = -dudnt(i); % LINEAR PROFILE
     out = SolveFrontEkman(x, pos, ubar, dudn, tau, f);
     
     u(i,:) = out.u;
@@ -93,7 +108,8 @@ Ve = griddata(xi(masky), yi(masky), vevec(masky), X, Y);
 
 mask = ones(size(Y)); 
 ytemp = interp1(x, y, X(1,:));
-for i=1:2000
+
+for i=1:length(ytemp);
     mask(Y(:,i)> ytemp(i)+amp, i) = NaN;
     mask(Y(:,i)< ytemp(i)+offsets(1), i) = NaN;
 end
@@ -122,7 +138,10 @@ STRETCH = -(f+ZETABAR).*WE; % XX-REVISIT SIGN CONVENTION FOR UPWELLING
 [ZBarX, ZBarY] = gradient(ZETABAR, deltax, deltay);
 GRAD = -Ue.*( real(SVECX).*ZBarX + imag(SVECX).*ZBarY) - Ve.*(-imag(SVECX).*ZBarX + real(SVECX).*ZBarY);
 
-
+%%
+VI = interp2(X, Y, VortCart, x, positions(ind,:));
+figure 
+plot(x./xfact, VI);
 %% CONFIRM VORTICITY
 cl = [-1 1].*1e-7;
 figure
@@ -168,7 +187,7 @@ for i=1:5
     colorbar;
     set(gca, 'clim', cl);
 
-    set(gca, 'xlim', [4.8e5 5.8e5]);
+    set(gca, 'xlim', [4.8e5 7.8e5]);
 %     set(gca, 'ylim', [offsets(1) offsets(end)]);
         hold on
     ind = 11;
@@ -208,10 +227,13 @@ conts = linspace(cl(1), cl(end), 10);
 xnorm = 2*pi*ubarc./(f);
 lxpos = .125;
 fs = 12;
-xl = [4.24e5 8e5];
+% xl = [4.24e5 8e5]+5e5;
+xl = [4.25e5 8e5]+5e5;
+
 index = find(x>xl(1), 1)-1;
 indexe = find(x>xl(2), 1);
 xl = [0 6];
+% xl = [0 30];
 xn = x./xnorm;
 xn = xn - xn(index);
 gap = [.02 .05]; margh = .1; margw=.1;
@@ -235,10 +257,10 @@ set(gca, 'xlim', xl);
 grid on
 % title(num2str(Y(ind,1)));
 % axis equal
-set(gca, 'ylim', [-1.5 .5]);
+set(gca, 'ylim', [-2 .5]);
 set(gca, 'XTickLabel', []);
 ylabel('$\hat{y}$', 'Interpreter', 'Latex');
-t = text(lxpos, 0.275, 'Ekman Transport');
+t = text(lxpos, 0.25, 'Ekman Transport');
 set(t, 'BackgroundColor', 'w', 'EdgeColor', 'k', 'Interpreter', 'Latex');
 vortnorm = ubarc.*f.*20/L;
 set(gca, 'FontSize', fs);
@@ -251,12 +273,13 @@ plot(xn, STRETCHI./vortnorm, 'LineWidth', 2);
 plot(xn, GRADI./vortnorm, 'LineWidth', 2);
 hold off
 set(gca, 'xlim', xl);
+set(gca, 'YTick', -1.5:0.5:1.5);
 grid on
 % set(gca,'ylim', [-10 20]);
-% set(gca, 'ylim', [-1 1]);
+set(gca, 'ylim', [-1 1.5]);
 legend('ADV', 'STRETCH', 'GRAD', 'Location', 'NorthEast');
 set(gca, 'XTickLabel', []);
-t = text(lxpos, .80, 'Vorticity Budget');
+t = text(lxpos, 1.25, 'Vorticity Budget');
 set(t, 'BackgroundColor', 'w', 'EdgeColor', 'k', 'Interpreter', 'Latex');
 set(gca, 'FontSize', fs);
 
@@ -272,12 +295,15 @@ plot(xn(index:indexe), cumtrapz(x(index:indexe), GRADI(index:indexe)./vortnorm),
 
 hold off
 set(gca, 'xlim', xl);
+set(gca, 'ylim', [-1.5 1.5]);
+set(gca, 'YTick', -1.5:0.5:1.5);
+
 grid on
 xlabel('$\hat{x}$', 'Interpreter', 'Latex');
-t = text(lxpos, .75, 'Cumulative Budget');
+t = text(lxpos, 1.23, 'Integrated Budget');
 set(t, 'BackgroundColor', 'w', 'EdgeColor', 'k', 'Interpreter', 'Latex');
 set(gca, 'FontSize', fs);
-set(gcf,'Color', 'w', 'Position', [665   376   548   592])
+set(gcf,'Color', 'w', 'Position', [650   253   521   706])
 
 % TO EXPORT, FIX LEGEND POSITION THEN
 % export_fig('VorticityBudgetNew.eps', '-eps', '-painters', '-q101', '-p01')

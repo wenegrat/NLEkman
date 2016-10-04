@@ -53,7 +53,7 @@ mask = mask.';
 avecs = [0 3e3 6e3 12e3];
 gap = [.02 .02]; margh=.25; margw=.2;
 wnorm = taumag./(1+epsilon).^2.*epsilon; % XX-Check this.
-wnorm = taumag./(f*L);
+wnorm = taumag./(f*L*sqrt(2));
 lnorm = xfact;
 figure
 for si=1:length(avecs)
@@ -95,6 +95,7 @@ cb = colorbar('southoutside');
 set(get(cb, 'xlabel'), 'String', '$\hat{w_e}$', 'Interpreter','Latex', 'FontSize', 22)
 set(gcf, 'Color', 'w', 'Position', [  665   129   692   832]);
 set(cb, 'Position', [  0.1988    0.1755    0.6008    0.0081]);
+% set(cb, 'Ticks', -0.75:0.25:0.75);
 colormap(flipud(othercolor('RdBu11')))
 
 % EXPORT COMMAND

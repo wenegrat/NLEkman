@@ -24,7 +24,7 @@ function ddl = MFode(l, y)
     tauntemp = TAUN(l);
 %     r = 1e-5;
     ddl = [1./ubar*(taustemp + (f+zetatemp).*y(2)) - r.*y(1)./ubar; %Solving for u first
-            1./ubar*(tauntemp - (f+2*omegatemp)*y(1))] - r.*y(2)./ubar;
+            1./ubar*(tauntemp - (f+2*omegatemp)*y(1)) - r.*y(2)./ubar];
 
 end
 
