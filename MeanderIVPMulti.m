@@ -12,7 +12,8 @@ ubart = ubarc.*exp(-(ys./L).^2/2);
 Wfull = NaN(length(avecs), length(x), length(ys));
 UBfull = Wfull;
 yfull = NaN(length(avecs), length(x));
-
+omegatot = NaN(length(ys), length(x));
+zetatot = omegatot;
 for Aind = 4;1:length(avecs);
     A = avecs(Aind);
 
@@ -78,7 +79,8 @@ for Aind = 4;1:length(avecs);
         % SOLVE ODES
         omega = ubar*k;
         zeta = -dudn + omega;
-
+        omegatot(ind,:) = omega;
+        zetatot(ind,:) = zeta;
         l = abs(cumtrapz(x1, abs(vels))); % int_x sqrt( 1+(dy/dx)^2)
         % l = cumtrapz(real(velfr));
         guess = [0 0]; %IVP bc u, v
@@ -111,7 +113,11 @@ for Aind = 4;1:length(avecs);
     ubfull = reshape(ubfull, 1, npaths*nx);
     UBAR = griddata(xi(mask), yi(mask), ubfull(mask), X, Y);
     UBfull(Aind,:,:) = UBAR.';
+    zetavec = reshape(zetatot.', npaths*nx, 1);
+    omegavec = reshape(omegatot.', npaths*nx, 1);
     
+    OMEGA = griddata(xi(mask), yi(mask), omegavec(mask), X, Y);
+    ZETA = griddata(xi(mask), yi(mask), zetavec(mask), X, Y);
     
 end
 

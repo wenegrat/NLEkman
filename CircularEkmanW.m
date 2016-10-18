@@ -28,25 +28,29 @@ for i=1:4
             conts =  linspace(-1.2, 1.2, nc);
             clim = conts([1 end]);
             lstr = '$\frac{M_x}{\epsilon\tau_o/(\rho f)}$';
+            pos  = [3 5];
         case 2
             var = MVBAR./(tau./f);
             conts = linspace(-1.2, -.8, nc);
             clim = conts([1 end]);
             lstr = '$\frac{M_y}{\tau_o/(\rho f)}$';
+            pos = [7 9];
         case 3 
             var = W./(tau./(f*cr));
             conts = linspace(-0.25, 0.25, nc);
             clim = conts([1 end]);
             lstr = '$\frac{w_e}{\tau_o/(\rho fR)}$';
+            pos = [11 13]
         case 4
             var = (W - Wclassic)./(2*epsilon*tau./(f*cr));
             clim = conts([1 end]);
             conts = [-0.3 linspace(-0.25, 0.25, nc) 0.3];
             
             lstr = '$\frac{w''}{2\epsilon\tau_o/(\rho fR)}$';
+            pos = [15 17];
 %             conts = wcontsclass;
     end
-subtightplot(4,2,2*i-1, gap, margh, margw);
+subtightplot(9,2,pos, gap, margh, margw);
 [c, h] = contourf(X./cr, Y./cr, var, conts); shading interp
 % set(h, 'edgecolor', 'none');
 axis square
@@ -66,9 +70,43 @@ set(gca, 'clim', clim);
 set(gca, 'XTick', -2:1:2, 'YTick', -2:1:2);
 set(gca, 'FontSize', 12);
 set(get(gca, 'ylabel'), 'FontSize', 18);
-if i==1; title('Anticyclone'); end
+% if i==1; title('Anticyclone'); end
 end
+set(gcf,'Color', 'w', 'Position', [384   130   613   843])
 
+
+%%
+ind = find(out.y == 0);
+
+uvels = out.UMAG(:, ind);
+uvels(1:ind) = -uvels(1:ind);
+uvels(ind) = 0;
+
+om = out.OMEGA(:,ind);
+zetas = out.ZETA(:,ind) - om;
+subtightplot(9, 2, 1, gap, margh, margw);
+plot(X./cr, uvels./(epsilon.*f.*cr), 'LineWidth', 2);
+hold on
+plot(X./cr, om./(f*epsilon*2), '--');
+plot(X./cr, zetas./(f*epsilon*2), '--');
+hold off
+% axis equal
+set(gca, 'XTick', -2:1:2, 'XLim', xl);
+% set(gca, 'ylim', [0 .4])
+% axis square
+
+grid on
+cb = colorbar;
+set(cb, 'visible', 'off');
+
+% set(gca, 'Units', 'inches');
+pos = get(gca, 'position');
+% set(gca, 'Position', [1.18 pos(2) 1.375 pos(4)]);
+set(gca, 'Position', [.191 pos(2) 0.212 pos(4)]);
+title('Anticyclone');
+set(gca, 'FontSize', 12);
+
+% legend('$\bar{u}/(\epsilon f L)$', '$\Omega/(2\epsilon f)$', '$\zeta_s/(2\epsilon f)$', 'Location', 'EastOutside');
 
 %%
 %Cyclone
@@ -82,6 +120,7 @@ for i=1:4
             conts =  linspace(-1.2, 1.2, nc);
             clim = conts([1 end]);
             lstr = '$\frac{M_x}{\tau_o/(\rho f)}$';
+            pos = [4 6];
         case 2
             var = MVBAR./(tau./f);
             conts = linspace(-1.5, -.5, nc);
@@ -89,20 +128,23 @@ for i=1:4
 
             clim = conts([1 end]);
             lstr = '$\frac{M_y}{\tau_o/(\rho f)}$';
+            pos = [8 10];
         case 3 
             var = W./(tau./(f*cr));
             conts = linspace(-0.25, 0.25, nc);
             clim = conts([1 end]);
             lstr = '$\frac{w_e}{\tau_o/(\rho fR)}$';
+            pos = [12 14];
         case 4
             var = (W - Wclassic)./(2*epsilon*tau./(f*cr));
             clim = conts([1 end]);
             conts = [-0.3 linspace(-0.25, 0.25, nc) 0.3];
        
             lstr = '$\frac{w''}{\tau_o/(\rho fR)}$';
+            pos = [16 18];
 %             conts = wcontsclass;
     end
-subtightplot(4,2,2*i, gap, margh, margw);
+subtightplot(9,2,pos, gap, margh, margw);
 [c, h] = contourf(X./cr, Y./cr, var, conts); shading interp
 % set(h, 'edgecolor', 'none');
 axis square
@@ -125,11 +167,41 @@ grid on
 set(gca, 'clim', clim);
 set(gca, 'XTick', -2:1:2, 'YTick', -2:1:2);
 set(gca, 'FontSize', 12);
-if i==1; title('Cyclone'); end
+if i==1;  end
 end
 colormap(flipud(othercolor('RdBu11')));
 set(gcf,'Color', 'w', 'Position', [384   130   613   843])
 
+%%
+subtightplot(9,2, 2, gap, margh, margw);
+ind = find(out.y == 0);
+
+uvels = out.UMAG(:, ind);
+uvels(1:ind) = -uvels(1:ind);
+uvels(ind) = 0;
+
+om = out.OMEGA(:,ind);
+zetas = out.ZETA(:,ind) - om;
+plot(X./cr, uvels./(epsilon.*f.*cr), 'LineWidth', 2);
+hold on
+plot(X./cr, om./(f*epsilon*2), '--');
+plot(X./cr, zetas./(f*epsilon*2), '--');
+hold off
+% axis equal
+set(gca, 'XTick', -2:1:2, 'XLim', xl);
+% set(gca, 'ylim', [0 .4])
+% axis square
+
+grid on
+cb = colorbar;
+set(cb, 'visible', 'off');
+pos = get(gca, 'position');
+set(gca, 'Position', [.5408 pos(2) 0.2150 pos(4)]);
+title('Cyclone');
+set(gca, 'FontSize', 12);
+legend('$\bar{u}/(\epsilon f R)$', '$\Omega/(2\epsilon f)$', '$\zeta_s/(2\epsilon f)$', 'Location', 'EastOutside');
+%% EXPORTING
+% export_fig('CircularWNew.eps', '-eps', '-opengl', '-q100', '-p01')
 %%
 % colormap(flipud(othercolor('RdBu11')));
 % clear cmnew

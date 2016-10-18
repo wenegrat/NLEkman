@@ -55,6 +55,7 @@ gap = [.02 .02]; margh=.25; margw=.2;
 wnorm = taumag./(1+epsilon).^2.*epsilon; % XX-Check this.
 wnorm = taumag./(f*L*sqrt(2));
 lnorm = xfact;
+nc = 40;
 figure
 for si=1:length(avecs)
     sti = find(ytemp>=avecs(si)-0,1);
@@ -62,7 +63,7 @@ for si=1:length(avecs)
     if isempty(sti); sti=length(ytemp)-(2*lp+1); end
     inds = sti:(sti+2*lp);
     subtightplot(length(avecs), 1,si, gap, margh, margw)
-    [c, h]  = contourf((x(inds)-x(inds(1)))./xfact, ys/lnorm, (mask(inds,:).*squeeze(Wfull(4,inds,:))).'./wnorm, 20); shading interp
+    [c, h]  = contourf((x(inds)-x(inds(1)))./xfact, ys/lnorm, (mask(inds,:).*squeeze(Wfull(4,inds,:))).'./wnorm, nc); shading interp
     set(h, 'edgecolor','none')
     hold on;
     contour((x(inds)-x(inds(1)))./xfact, ys/lnorm, squeeze(UBfull(4,inds,:)).', uvecs, 'LineColor', 'k');
@@ -90,6 +91,12 @@ for si=1:length(avecs)
         
 %     colorbar;
     grid on
+    
+    if (si==1) % PLOT FRONT STRUCTURE
+        hold on
+        plot(ubart/2+0.5.*ones(size(ys)), ys./lnorm, '--k', 'LineWidth', 1.25);
+        hold off
+    end
 end
 cb = colorbar('southoutside');
 set(get(cb, 'xlabel'), 'String', '$\hat{w_e}$', 'Interpreter','Latex', 'FontSize', 22)
@@ -100,26 +107,75 @@ colormap(flipud(othercolor('RdBu11')))
 
 % EXPORT COMMAND
 % export_fig('MeanderFrontNew.eps', '-eps', '-opengl', '-q100', '-p01')
-%%
-% taumag = 1i*taumag;
-% % MERIDIONAL WIND STRESS
-% MeanderIVPMulti
-% %%
-% for si=1:length(avecs)
-%     sti = find(ytemp>=avecs(si)-100,1);
-%     if (sti<5500); sti=5500; end
-%     inds = sti:(sti+2*lp);
-%     subplot(length(avecs), 2, 2*si)
-%     [c, h]  = contourf((x(inds)-x(inds(1)))./xfact, ys/1e3, squeeze(Wfull(4,inds,:)).', 20); shading interp
-%     set(h, 'edgecolor','none')
-%     hold on;
-%     contour((x(inds)-x(inds(1)))./xfact, ys/1e3, squeeze(UBfull(4,inds,:)).', uvecs, 'LineColor', 'k');
-%     plot((x(inds)-x(inds(1)))./xfact, ytemp(inds)./1e3, 'k')
-%     hold off
-%     ylabel(['A = ',num2str(avecs(si)/1e3), ' km']);
-%     set(gca, 'clim', [-1 1]*4e-5);
-%     set(gca, 'ylim', [-1 1]*1.5*avecs(end)/1e3)
+%% W' PLOT
+gap = [.0175 .01]; margh = .25; margw=.25;
+vclassic = -taumag./(f+ZETA+.1^2.*f); %Note including small damping term.
+[~, wclassic] = gradient(vclassic, deltay);
+% nc = 10;
+figure
+avec = 6000;
+si = 1;
+sti = find(ytemp>=avec(si)-0,1);
+    if (sti<5500); sti=6500; end
+    if isempty(sti); sti=length(ytemp)-(2*lp+1); end
+    inds = sti:(sti+2*lp);
+    Rmin = 1./max(ktot(inds));
+Lr = L./Rmin;
+ for i=1:3;
+     switch i
+         case 1 % W NL
+             var = (mask(inds,:).*squeeze(Wfull(4,inds,:))).'./wnorm;
+             tstring = '$\hat{w}_{e}$';
+         case 2 % W Classic
+             var = wclassic(:,inds)./wnorm;
+             tstring = '$\hat{w}_{SF}$';
+         case 3 % W'
+             wnf = (epsilon.*taumag./(f*L).*Lr);
+%              wnf = wnorm./10;
+             
+             var = (squeeze(Wfull(4,inds,:)).' - wclassic(:,inds))./wnf;
+             tstring = '$\hat{w}''$';
+     end
+     subtightplot(3,1,i, gap, margh, margw);
+    [c, h]  = contourf((x(inds)-x(inds(1)))./xfact, ys/lnorm, var, nc); shading interp
+    set(h, 'edgecolor','none')
+    hold on;
+    contour((x(inds)-x(inds(1)))./xfact, ys/lnorm, squeeze(UBfull(4,inds,:)).', uvecs, 'LineColor', 'k');
+    plot((x(inds)-x(inds(1)))./xfact, ytemp(inds)./lnorm, 'k')
+%     contour((x(inds)-x(inds(1)))./xfact, ys/lnorm, squeeze(mask(inds,:)).', [1 1], 'LineStyle', '--', 'LineColor', 'k');
+    hold off
+    ylabel(['A = ',num2str(avecs(si)/1e3), ' km']);
+    set(gca, 'clim', [-1 1]*1);
+    set(gca, 'ylim', [-1 1]*2*avecs(end)/lnorm)
+    if (i~=3)
+        set(gca, 'XTickLabel', []);
+    else
+        xlabel('$\hat{x}$', 'Interpreter', 'Latex', 'FontSize', 20);
+    end
+        ylabel('$\hat{y}$', 'Interpreter', 'Latex', 'FontSize', 20);
+        rmin = min(abs(1./ktot(inds)));
+%         t = text(.075, .075, ['R_{min} = ',num2str(rmin./lnorm, 2)]);
+%             tstring = num2str(max(ytemp(inds(1)))./lnorm,2);
+%             if avecs(si)==0
+%                 tstring = '0';
+%             end
+        t = text(.075, .125, [tstring]);
+        set(t, 'BackgroundColor', 'w', 'EdgeColor', 'k', 'Interpreter', 'Latex');
+%         annotation('textbox',[.1 ,'String',str,'FitBoxToText','on');
+        
 %     colorbar;
-%     grid on
-% end
-% set(gcf, 'Color', 'w', 'Position', [ 675   262   905   713]);
+    grid on
+
+ end
+ cb = colorbar('southoutside');
+% 
+set(get(cb, 'xlabel'), 'String', '$\hat{w}$', 'Interpreter','Latex', 'FontSize', 22)
+% set(gcf, 'Color', 'w', 'Position', [  665   129   692   832]);
+% set(cb, 'Ticks', -0.75:0.25:0.75);
+set(cb, 'Position', [  0.2509    0.134    0.500    0.0158]);
+
+colormap(flipud(othercolor('RdBu11')))
+set(gcf, 'Color', 'w', 'Position', [675   377   672   587]);
+
+% EXPORT COMMAND
+% export_fig('MeanderFrontWPrime.eps', '-eps', '-opengl', '-q100', '-p01')

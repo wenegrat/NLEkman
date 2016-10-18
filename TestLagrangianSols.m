@@ -168,7 +168,22 @@ hold on
 plot(x./120e3, ypos); 
 hold off
 %%
-pcolor(X, Y, abs(PX+1i*PY)); shading interp
-hold on
-plot(x, ypos);
+% Zonal Mom Balance
+dudt = gradient(interp2(X, Y, U, x, ytotsl(ind,:)), deltat);
+cori = -f.*interp2(X, Y, V, x, ytotsl(ind,:));
+pxi = interp2(X, Y, PX, x, ytotsl(ind,:));
+tx = ones(size(pxi)).*tau(end,1,1);
+figure
+subplot(2,1,1)
+plot(dudt);
+hold on;
+plot(cori);
+plot(pxi, '--');
+plot(tx);
+% plot(dudt+cori, '--');
 hold off
+subplot(2,1,2)
+plot(dudt);
+hold on;
+plot(pxi-cori);
+hold off;

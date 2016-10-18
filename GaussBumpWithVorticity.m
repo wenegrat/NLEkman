@@ -51,7 +51,7 @@ ubart = ubarc.*exp(-(offsets./L).^2/2);
 %Allocate
 u = NaN(length(offsets), length(x));
 v = u; l = u; zeta = u; k = u; taus = u; taun = u; positions=u;ux=u; vx=u; 
-svec = u; ubarall = u;
+svec = u; ubarall = u; omega = zeta;
 
 for i=1:length(offsets)
     disp([num2str(i),'/', num2str(length(offsets))]);
@@ -69,6 +69,7 @@ for i=1:length(offsets)
     vx(i,:) = out.vy;
     l(i,:) = out.l;
     zeta(i,:) = out.zeta;
+    omega(i,:) = out.omega;
     k(i,:) = out.omega./ubar;
     taus(i,:) = out.taus;
     taun(i,:) = out.taun;
@@ -91,6 +92,7 @@ svecvec = reshape(svec.', noff*nx, 1);
 kvec = reshape(k.', noff*nx,1);
 ubarvec = reshape(ubarall.', noff*nx, 1);
 zetavec = reshape(zeta.', noff*nx, 1);
+omegavec = reshape(omega.', noff*nx, 1);
 
 [X, Y] = meshgrid(linspace(x(1), x(end), 4000), offsets);
 deltax = X(1,2) - X(1,1);
@@ -103,6 +105,7 @@ SVECX = griddata(xi(masky),yi(masky), svecvec(masky), X, Y);
 K = griddata(xi(masky), yi(masky), kvec(masky), X, Y);
 UBAR = griddata(xi(masky), yi(masky), ubarvec(masky), X, Y);
 ZETABAR = griddata(xi(masky), yi(masky), zetavec(masky), X, Y);
+OMEGABAR = griddata(xi(masky), yi(masky), omegavec(masky), X, Y);
 Ue = griddata(xi(masky), yi(masky), uevec(masky), X, Y);
 Ve = griddata(xi(masky), yi(masky), vevec(masky), X, Y);
 
@@ -137,7 +140,12 @@ STRETCH = -(f+ZETABAR).*WE; % XX-REVISIT SIGN CONVENTION FOR UPWELLING
 
 [ZBarX, ZBarY] = gradient(ZETABAR, deltax, deltay);
 GRAD = -Ue.*( real(SVECX).*ZBarX + imag(SVECX).*ZBarY) - Ve.*(-imag(SVECX).*ZBarX + real(SVECX).*ZBarY);
+GRADS = -Ue.*( real(SVECX).*ZBarX + imag(SVECX).*ZBarY);
+GRADN = - Ve.*(-imag(SVECX).*ZBarX + real(SVECX).*ZBarY);
 
+%Checking just the curvature vort component.
+[ZBarOX, ZBarOY] = gradient(OMEGABAR, deltax, deltay);
+GRADNK = - Ve.*(-imag(SVECX).*ZBarOX + real(SVECX).*ZBarOY);
 %%
 VI = interp2(X, Y, VortCart, x, positions(ind,:));
 figure 
