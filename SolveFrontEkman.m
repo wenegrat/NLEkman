@@ -1,5 +1,9 @@
 function output = SolveFrontEkman(x, y, ubar, zetabase,tau,  f)
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SolveFrontEkman
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Solves the Ekman flow problem (could redo MeanderIVPMulti to use this)...
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 deltax = x(2)-x(1); %assuming uniform spacing
 % Calculate k
     dx  = gradient(x, deltax);
@@ -20,17 +24,22 @@ deltax = x(2)-x(1); %assuming uniform spacing
     vels = dx+1i*dy;  %Tangent Vectors at each spot.
     frntvec = vels./abs(vels); %Normalized;
 
-    l = cumtrapz(x, abs(vels));
+    % Alongfront distance
+l = cumtrapz(x, abs(vels));
     
-     omega = k*ubar;
-     zeta = zetabase + omega;
+omega = k*ubar;
+zeta = zetabase + omega;
      
-     taus = dot([real(tau); imag(tau)], [real(frntvec); imag(frntvec)]);
-     taun = dot([real(tau); imag(tau)], [-imag(frntvec); real(frntvec)]);
+% Project stress on BN coordinates
+ taus = dot([real(tau); imag(tau)], [real(frntvec); imag(frntvec)]);
+ taun = dot([real(tau); imag(tau)], [-imag(frntvec); real(frntvec)]);
      
      guess  = [0 0];
-     r = 0;
+     r = 0; % Undamped in this case
+     % SOLVE ODE
      out = meanderFrontODEIVP(l, omega, zeta, ubar, taus, taun, f, guess, r);
+     
+     % Save All Output into struct
      output.ux = real(out.u.*frntvec + out.v.*1i.*frntvec);
      output.vy =  imag(out.u.*frntvec + out.v.*1i.*frntvec);
      output.zeta = zeta;

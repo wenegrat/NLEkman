@@ -14,26 +14,31 @@ deltax = 1e3;
 x = 1:deltax:120e3;
 f = 1e-4;
 
-zetabase = 0*.1*f.*ones(size(x)); zeros(size(x));
-avecs = (0:0.1:24)*1e3;
-kratio = .1:.01:6;
-ubars  = f*xfact./(2*pi*kratio);
+zetabase = 0*.1*f.*ones(size(x)); zeros(size(x)); %Currently z_s is zero
+
+avecs = (0:0.1:24)*1e3; % Amplitudes to evaluate
+kratio = .1:.01:6; 
+ubars  = f*xfact./(2*pi*kratio); % ubars to check
+
 tic
+%Pre-Alocate
 nu = NaN(length(avecs), length(ubars));
 ls = NaN(size(avecs));
 kall = ls;
+
+%Iterate over amplitudes
 for i=1:length(avecs)
     disp(num2str(i))
     amp = avecs(i);
     y = amp*sin(2*pi.*x./xfact);
 
-    %Determine curvature - Probably could do this analytically.
+    %Determine curvature
     dx  = gradient(x, deltax);
     ddx = gradient(dx, deltax);
-    dy  = gradient(y, deltax);
+%     dy  = gradient(y, deltax);
     dy(1:end-1) = (y(2:end)-y(1:end-1))./(deltax);
     dy(end) = dy(1);
-    ddy = gradient(dy, deltax);
+%     ddy = gradient(dy, deltax);
     ddy(1:end-1) = (dy(2:end)-dy(1:end-1))./(deltax);
     ddy(end) =ddy(1);
     num   = dx .* ddy - ddx .* dy;
@@ -42,60 +47,49 @@ for i=1:length(avecs)
     denom = denom.* denom.* denom;
     k = num ./ denom;
     k(denom < 0) = NaN;
-    kall(i) = max(k);
+    kall(i) = max(k); % Save the maximum k value (ie min R).
     
     vels = dx+1i*dy;  %Tangent Vectors at each spot.
     l = cumtrapz(x, abs(vels));
     ls(i) = l(end);
+    
+    % Parallel loop over ubar values
     parfor j=1:length(ubars)
         ubar = ubars(j);
     
-        if (f/ubar <= 3*max(k))
+        if (f/ubar <= 3*max(k)) % Constraint on integrability (f - 3*Omega)>0
             nu(i,j) = NaN;
         else
+            
         omega = k*ubar;
         zeta = zetabase + omega;
-%         A = Front_Solver(l, l(end), omega, zeta, f, ubar);
-        A = Front_Solver(x, xfact,l, omega, zeta, f, ubar);
-%         A = Front_Solver(linspace(0,2*pi, length(x)), 2*pi, omega, zeta, f, ubar);
+        A = Front_Solver(x, xfact,l, omega, zeta, f, ubar); % xx- check this
 
         ef = eig(A);
-        nu(i,j) = log(max(abs(ef(1)), abs(ef(2))));
+        nu(i,j) = log(max(abs(ef(1)), abs(ef(2)))); % nu is growth rate
         end
     end
 end
 toc
 
 %%
-k = f./ubars;
+k = f./ubars; % k is approx natural wavelength
 clear kn;
 for j=1:length(ubars)
-   kn(:,j) = k(j)./(2*pi./ls);
+   kn(:,j) = k(j)./(2*pi./ls); %normalized approx wavelength in along-front coordinate
 end
-amat = repmat((avecs./ls).', [1 length(ubars)]);
-amat = repmat((kall./(2*pi./ls)).', [1 length(ubars)]);
 
-% amat(~isfinite(amat))=0;
+% Note there is a choice to plot by amplitude or curvature
+% amat = repmat((avecs./ls).', [1 length(ubars)]);
+amat = repmat((kall./(2*pi./ls)).', [1 length(ubars)]); 
+
 knvec = reshape(kn, length(avecs).*length(ubars), 1);
 amvec = reshape(amat, length(avecs).*length(ubars),1);
 nuvec = reshape(nu, length(avecs).*length(ubars),1);
-[X,Y ] = meshgrid(k./(2*pi./xfact), kall./(2*pi./xfact));
+[X,Y ] = meshgrid(k./(2*pi./xfact), kall./(2*pi./xfact)); %Converting to a grid that is based on x wavelength
 NU = griddata(knvec, amvec, nuvec, X, Y);
-% %%
-% figure
-% pcolor(X, Y, NU); shading interp
-% hold on
-% cl = get(gca, 'Clim');
-% contour(X, Y, NU, [.1 .1], 'k')
-% set(gca, 'clim', cl);
-% hold off
-% xlabel('$(f/\bar{u})/(2\pi/\lambda_l)$', 'Interpreter', 'Latex')
-% ylabel('$A/\lambda_l$', 'Interpreter', 'Latex');
-% colormap(othercolor('Reds9'));
-% colorbar
-% set(gcf, 'Color', 'w');
-% grid on
-%%
+
+%% PLOT a Simple Meander for illustration (don't really need this anymore)
 x=0:1e3:1000e3;
 ubar = .25;
 xc = floor(length(x)/2);
@@ -147,30 +141,31 @@ grid on
 xlabel('$x/\lambda_n$', 'Interpreter', 'Latex');
 ylabel('$y/\lambda_n$', 'Interpreter', 'Latex');
 set(gca, 'FontSize', 20);
-%%
+%% PLOT STABILITY PROPERTIES
+
 % feff = mean(sqrt((f+2*omega).*(f+zeta)));
 feff = f;
+
 % figure
 subplot(2,1,2)
-pcolor(f./ubars./(2*pi./xfact), avecs./xfact, nu); shading interp;
-pcolor((feff)./ubars./(2*pi./xfact), kall./(2*pi./xfact), nu); shading interp;
+pcolor(f./ubars./(2*pi./xfact), avecs./xfact, nu); shading interp; % Plot by amplitude
+pcolor((feff)./ubars./(2*pi./xfact), kall./(2*pi./xfact), nu); shading interp; % Plot by min R
 
-% pcolor(f./ubars, avecs, nu); shading interp;
 
 hold on
-cl = get(gca, 'Clim');
+    cl = get(gca, 'Clim');
 
-% contour((f./ubars./(2*pi./xfact)), avecs./xfact, nu, [.1 .1], 'k')
-% contour((f./ubars./(2*pi./xfact)), kall./(2*pi./xfact), nu, [.1 .1]/2, 'k')
+    % contour((f./ubars./(2*pi./xfact)), avecs./xfact, nu, [.1 .1], 'k')
+    % contour((f./ubars./(2*pi./xfact)), kall./(2*pi./xfact), nu, [.1 .1]/2, 'k')
 
-set(gca, 'clim', cl);
+    set(gca, 'clim', cl);
 hold off
 xlabel('$(f/\bar{u})/(2\pi/\lambda_l)$', 'Interpreter', 'Latex')
 % ylabel('$A/\lambda_x$', 'Interpreter', 'Latex');
 ylabel('$(\Omega_{max}./\bar{u})/(2\pi/\lambda_l)$', 'Interpreter', 'Latex');
 
 colormap(othercolor('Reds9'));
-cb = colorbar
+cb = colorbar;
 set(get(cb, 'ylabel'), 'String', 'Growth Rate (\lambda_l^{-1})');
 set(gcf, 'Color', 'w');
 set(gca, 'FontSize', 20);

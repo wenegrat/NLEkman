@@ -26,7 +26,7 @@ CircularEkmanW
 MeanderPlots
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Figure 5: Oscillations
+% Figure 6: Oscillations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 GaussBumpWithVorticity
 
@@ -36,5 +36,6 @@ GaussBumpWithVorticity
 % Extras
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 MeanderNumResonance; %Floquet Analysis
+% To Clean
 VerifyNoWMeanFlow; %Confirm that mean flow is non-divergent.
 TestLagrangianSols; %Compare solutions found by integrating Lagrangian EOM
