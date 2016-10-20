@@ -1,19 +1,30 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% VerifyNoWMeanFlow.m
+%%%%%%%%%%%%%%%%%%%%%%%%%%5
+% Purpose is to confirm that my calculation of offset curves is
+% non-divergent.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 lambda = 120e3;
-k = 2*pi./lambda;
+k = 2*pi./lambda; % wavenumber
 deltax = floor(lambda./500);
 x = 0:deltax:lambda;
-A = 12e3;
-offsets = -3*A:deltax:3*A;
+A = 12e3; % Amplitude
+offsets = -1*A:deltax:1*A;
+
 ubar = 1;
+
+% Pre-Allocate
 y = NaN(length(offsets), length(x));
 xs = y;
 Mu = y;
 Mv = y;
 thetas = y;
+
+% Calculate each path.
 for i=1:length(offsets)
     off = offsets(i);
-    xs(i,:) = x + off.*A*k*cos(k*x)./(sqrt(1+k.^2.*A.^2.*cos(k*x).^2));
-    y(i,:) = A*sin(k*x) - off./sqrt(1+k^2.*A^2.*cos(k*x).^2);
+%     xs(i,:) = x + off.*A*k*cos(k*x)./(sqrt(1+k.^2.*A.^2.*cos(k*x).^2));
+%     y(i,:) = A*sin(k*x) - off./sqrt(1+k^2.*A^2.*cos(k*x).^2);
     xs(i,:) = x;
     y(i,:) = makeOffsetCurve(A*sin(k*x), off, x);
 %     xs(i,:) = x;
@@ -28,6 +39,7 @@ for i=1:length(offsets)
     vels = du+1i*dv;  %Tangent Vectors at each spot.
     frntvec = vels./abs(vels); %Normalized;
     velst(i,:) = vels;
+    % Project the balanced flow onto streamwise coordinate
     Mu(i,:) = real(ubar*frntvec + 0*1i.*frntvec);
     Mv(i,:) =  imag(ubar*frntvec + 0*1i.*frntvec);
     thetas(i,:) = angle(frntvec);
@@ -74,13 +86,15 @@ end
     %%
 %     contourf(x, offsets, W, 100); shading interp
     pcolor(x, offsets, W); shading interp
+    contourf(x, offsets, W);
 %     contourf(xs, y, thetas, 100); 
     colorbar;
     hold on
     inds = 145:5:155;
-    plot(xs(inds,:).', y(inds,:).','k');
+    inds = 1:101;
+%     plot(xs(inds,:).', y(inds,:).','k');
     hold off
         axis equal
     set(gca, 'ylim', [-1 1].*A*1.25);
-    set(gca, 'clim', [-1 1].*1e-6);
+%     set(gca, 'clim', [-1 1].*1e-6);
 %    set(gca, 'clim', [-1 1].*.5);
