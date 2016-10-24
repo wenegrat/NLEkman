@@ -53,10 +53,10 @@ for Aind = 4;1:length(avecs);
     if (sum(~isfinite(y)) == 0)
         dx  = gradient(x, deltax*xfact); %Note that in these functions deltax is normalized by xfact
         ddx = gradient(dx, deltax*xfact); % Should be zero for uniform x
-%         dy  = gradient(y, deltax*xfact);
+        dy  = gradient(y, deltax*xfact);
         dy(1:end-1) = (y(2:end)-y(1:end-1))./(deltax.*xfact);
         dy(end) = dy(1);
-%         ddy = gradient(dy, deltax*xfact);
+        ddy = gradient(dy, deltax*xfact);
         ddy(1:end-1) = (dy(2:end)-dy(1:end-1))./(deltax.*xfact);
         ddy(end) =ddy(1);
         num   = dx .* ddy - ddx .* dy; % see: http://mathworld.wolfram.com/Curvature.html Eq. (13)

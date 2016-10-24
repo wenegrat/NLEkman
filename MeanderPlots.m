@@ -124,6 +124,7 @@ colormap(flipud(othercolor('RdBu11')))
 %% W' PLOT
 gap = [.0175 .01]; margh = .25; margw=.25;
 vclassic = -taumag./(f+ZETA+.1^2.*f); %Note including small damping term.
+vclassic = -taumag./(f + ZETA);
 [~, wclassic] = gradient(vclassic, deltay);
 
 % ncvc = 9;

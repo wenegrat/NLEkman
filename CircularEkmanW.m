@@ -184,6 +184,9 @@ subtightplot(9,2, 2, gap, margh, margw);
     set(gca, 'Position', [.5408 pos(2) 0.2150 pos(4)]);
     title('Cyclone');
     set(gca, 'FontSize', 12);
-    legend('$\bar{u}/(\epsilon f R)$', '$\Omega/(2\epsilon f)$', '$\zeta_s/(2\epsilon f)$', 'Location', 'EastOutside');
-%% EXPORTING - TO EXPORT USE THIS COMMAND:
+%     legend('$\bar{u}/(\epsilon f R)$', '$\Omega/(2\epsilon f)$', '$(\zeta-\Omega)/(2\epsilon f)$', 'Location', 'EastOutside');
+    leg = legend('$\frac{\bar{u}}{\epsilon f R}$', '$\frac{\Omega}{2\epsilon f}$', '$\frac{\zeta-\Omega}{2\epsilon f}$', 'Location', 'EastOutside');
+    set(leg, 'FontSize', 12);
+    %% EXPORTING - TO EXPORT USE THIS COMMAND:
+% First fix Legend location, and ylabel of bottom row.
 % export_fig('CircularWNew.eps', '-eps', '-opengl', '-q100', '-p01')
