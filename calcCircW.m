@@ -15,8 +15,8 @@ function out = calcCircW(epsilon, tau, f, cr)
 %   AUTHOR: Jacob O. Wenegrat (jwenegrat@stanford.edu) 10/18/16
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-thetas = 0:.005:2*pi; % Define angles to evaluate
-r = (0.01:.01:1).*3.5*cr; % Define radial coordinates to evaluate
+thetas = 0:.0025:2*pi; % Define angles to evaluate
+r = (0.01:.005:1).*3.5*cr; % Define radial coordinates to evaluate
 
 ubarmax = epsilon.*f.*cr; % Infer max velocity from inputs
 jetwidth = cr;  % Assuming that the width of jet is set by eddy radius
