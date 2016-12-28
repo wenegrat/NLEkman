@@ -38,7 +38,18 @@ denom = sqrt(denom);
 denom = denom.* denom.* denom;
 ktot = num ./ denom;
 ktot(denom < 0) = NaN;
-    
+            % Define ramp function for the wind stress
+        rampwidth = 20*xfact;
+        xc = 40.*xfact;
+        facTau = 1/2.*(1+tanh( (x-xc)./rampwidth));
+        % facTau = 1;
+        tautemp = facTau.*taumag.*ones(size(x));
+ %%
+        figure
+        subplot(2,1,1)
+        plot(x,tautemp);
+        subplot(2,1,2)
+        plot(x, ytemp);
 %% MASK REGIONS WITH TOO MUCH CURVATURE
 mask = ones(size(Y));
 [ny nx] = size(Y);
@@ -142,6 +153,10 @@ sti = find(ytemp>=avec(si)-0,1);
     inds = sti:(sti+2*lp);
     Rmin = 1./max(ktot(inds));
 Lr = L./Rmin;
+
+wnorm = epsilon.*taumag.*sqrt(2)/(f*L);
+wnf = epsilon.*taumag./(f*Rmin);
+
  for i=1:3;
      switch i
          case 1 % W NL
@@ -149,9 +164,9 @@ Lr = L./Rmin;
              tstring = '$\hat{w}_{e}$';
          case 2 % W Classic
              var = wclassic(:,inds)./wnorm;
-             tstring = '$\hat{w}_{SF}$';
+             tstring = '$\hat{w}_{ST}$';
          case 3 % W'
-             wnf = (epsilon.*taumag./(f*L).*Lr);
+%              wnf = (epsilon.*taumag./(f*L).*Lr);
 %              wnf = wnorm./10;
              
              var = (squeeze(Wfull(4,inds,:)).' - wclassic(:,inds))./wnf;
