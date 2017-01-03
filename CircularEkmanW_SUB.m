@@ -6,13 +6,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% PARAMETERS
-epsilon = 0.05;
+epsilon = 0.25;
 % epsilon = 0.0266;
-epsilon = 0.029;
+% epsilon = 0.029;
 tau = .1/1035;
-% f=1e-4;
-f = 2*2*pi./86400*sind(30);
-cr = 75e3; % Radius of Eddy
+f=1e-4;
+% f = 2*2*pi./86400*sind(30);
+cr = 12e3; % Radius of Eddy
 out = calcCircWGradientWind(-epsilon, tau, f,cr); % Calculate (epsilon < 0 is anticyclone)
 X = out.x; Y = out.y; MUBAR = out.MU; MVBAR = out.MV; W = out.W; Wclassic = out.WClassic; UMAG= out.UMAG;
 
@@ -21,31 +21,32 @@ figure
 nc = 20;24;16; % Number of contours in plot
 xl = [-2.5 2.5];
 gap = [.03 .01]; margh = .1; margw = .1;
-
+eps = max(max(abs(out.ZETA./f)));
+eps = epsilon;
 for i=1:4
     switch i
         case 1
-            var = MUBAR./(epsilon*tau./f);
+            var = MUBAR./(eps*tau./f);
             conts =  linspace(-1, 1, nc);
             clim = conts([1 end]);
             lstr = '$\frac{M_x}{\epsilon\tau_o/(\rho f)}$';
             pos  = [3 5];
         case 2
             var = MVBAR./(tau./f);
-            conts = linspace(-1.05, -0.95, nc);
+            conts = linspace(-1 - eps, -1 + eps, nc);
             clim = conts([1 end]);
             conts = [-2 conts 0];
             lstr = '$\frac{M_y}{\tau_o/(\rho f)}$';
             pos = [7 9];
         case 3 
-            var = W./(epsilon.*tau./(f*cr));
+            var = W./(eps.*tau./(f*cr));
             conts = linspace(-0.25, 0.25, nc); %XX_CONFIRM THIS AGAIN
-            conts = linspace(-6 , 6, nc);
+            conts = linspace(-10 , 10, nc);
             clim = conts([1 end]);
             lstr = '$\frac{w_e}{\epsilon\tau_o/(\rho fR)}$';
             pos = [11 13];
         case 4
-            var = (W - Wclassic)./(epsilon.^2*tau./(f*cr));
+            var = (W - Wclassic)./(eps.^2*tau./(f*cr));
             clim = conts([1 end]);
 %             conts = [-0.3 linspace(-0.25, 0.25, nc) 0.3];
             lstr = '$\frac{w''}{\epsilon^2\tau_o/(\rho fR)}$';
@@ -110,27 +111,27 @@ X = out.x; Y = out.y; MUBAR = out.MU; MVBAR = out.MV; W = out.W; Wclassic = out.
 for i=1:4
     switch i
         case 1
-            var = MUBAR./(epsilon*tau./f);
+            var = MUBAR./(eps*tau./f);
             conts =  linspace(-1, 1, nc);
             clim = conts([1 end]);
             lstr = '$\frac{M_x}{\epsilon\tau_o/(\rho f)}$';
             pos  = [4 6];
         case 2
             var = MVBAR./(tau./f);
-            conts = linspace(-1.05, -0.95, nc);
+            conts = linspace(-1-eps, -1+eps, nc);
             clim = conts([1 end]);
             conts = [-2 conts 0];
             lstr = '$\frac{M_y}{\tau_o/(\rho f)}$';
             pos = [8 10];
         case 3 
-            var = W./(epsilon.*tau./(f*cr));
+            var = W./(eps.*tau./(f*cr));
             conts = linspace(-0.25, 0.25, nc); %XX_CONFIRM THIS AGAIN
-            conts = linspace(-6 , 6, nc);
+            conts = linspace(-3 , 3, nc);
             clim = conts([1 end]);
             lstr = '$\frac{w_e}{\epsilon\tau_o/(\rho fR)}$';
             pos = [12 14];
         case 4
-            var = (W - Wclassic)./(epsilon.^2*tau./(f*cr));
+            var = (W - Wclassic)./(eps.^2*tau./(f*cr));
             clim = conts([1 end]);
 %             conts = [-0.3 linspace(-0.25, 0.25, nc) 0.3];
             lstr = '$\frac{w''}{\epsilon^2\tau_o/(\rho fR)}$';

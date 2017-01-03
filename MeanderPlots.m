@@ -66,6 +66,7 @@ mask = mask.';
 avecs = [0 3e3 6e3 12e3]; % Amplitudes to plot
 gap = [.02 .02]; margh=.25; margw=.2;
 wnorm = taumag./(f*L*sqrt(2)); % Normalization for w
+wnorm = taumag.*sqrt(2).*epsilon./(f*L);
 lnorm = xfact; % Normalization for L scales
 nc = 40; % Number of contours
 ncvc = 2;

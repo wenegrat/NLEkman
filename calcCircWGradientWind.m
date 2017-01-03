@@ -1,4 +1,4 @@
-function out = calcCircW(epsilon, tau, f, cr)
+function out = calcCircWGradientWind(epsilon, tau, f, cr)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CalcCircW
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -16,17 +16,33 @@ function out = calcCircW(epsilon, tau, f, cr)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 thetas = 0:.0025:2*pi; % Define angles to evaluate
-r = (0.01:.005:1).*3.5*cr; % Define radial coordinates to evaluate
-
+delr = 0.005*cr;
+r = (0.01:(delr/cr):1).*3.5*cr; % Define radial coordinates to evaluate
+r = -3.5*cr:delr:3.5*cr;
 ubarmax = epsilon.*f.*cr; % Infer max velocity from inputs
 jetwidth = cr;  % Assuming that the width of jet is set by eddy radius
 
 % Gaussian SSH - Assuming a Gaussian SSH gives this vel profile:
-velstruct = r./(jetwidth^2).*exp( - 1/2*(r/(jetwidth)).^2);
-velstruct = velstruct/max(abs(velstruct));
-velstruct = ubarmax.*velstruct;
-dudr = (1-r.^2./jetwidth.^2).*velstruct./r; % Radial derivative of vel
+sshstruct = exp(-1/2*(r/jetwidth).^2);
 
+dphidr = gradient(sshstruct, delr);
+dphidr = dphidr./max(abs(dphidr));
+dphidr = ubarmax.*f.*dphidr;
+if (epsilon<0)
+    velstruct = f.*r./2 - sqrt((f.*r/2).^2 + r.*dphidr); %sign change because r<0 for anticylone
+else
+    velstruct = -f.*r./2 + sqrt((f.*r/2).^2 - r.*dphidr); %sign change because r<0 for anticylone
+end
+disp(max(abs(velstruct))./(f*cr));
+% velstruct = r./(jetwidth^2).*exp( - 1/2*(r/(jetwidth)).^2);
+% velstruct = velstruct/max(abs(velstruct));
+% velstruct = ubarmax.*velstruct;
+dudr = gradient(velstruct, delr);
+% dudr = (1-r.^2./jetwidth.^2).*velstruct./r; % Radial derivative of vel
+rn = (0.01:(delr/cr):1).*3.5*cr; % Define radial coordinates to evaluate
+velstruct = interp1(r, velstruct, rn);
+dudr = interp1(r, dudr, rn);
+r = rn;
 disp(['Maximum \zeta_s = ', num2str(max(abs(dudr)))]);
 disp(['Maximum \zeta_c = ', num2str(max(abs(velstruct./r)))]);
 % Gaussian Vel - Uncomment to assume a Gaussian vel profile
